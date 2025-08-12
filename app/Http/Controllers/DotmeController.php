@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\FormRequestCadastro;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Dotme;
+use Illuminate\Http\Request; 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DotmeController extends Controller
 {
@@ -20,19 +23,21 @@ class DotmeController extends Controller
         return view('log');
     }
 
-    public function login(LoginRequest $request)
+    public function login(Request $request)
     {
-        if ($request->isMethod('post')) {
-            $data = $request->all();
+        $user = DB::table('cadastro')->where('email', $request->email)->first();
 
-            $user = Dotme::where('email', $data['email'])->first();
+        if ($user) {
+            if (Hash::check($request->password, $user->password)) {
+                // Login bem-sucedido
+                // return redirect()->route('index');
+                return redirect('/');
 
-            if ($user === null) {
-                return redirect()->back()->with('error', 'Usuário não encontrado');
+            } else {
+                return back()->with('error', 'Senha incorreta.');
             }
-
-           //aqui chamar a autenticação pra validar a senha
-           return view('index');
-        }  
+        } else {
+            return back()->with('error', 'E-mail não encontrado.');
+        }
     }
 }
